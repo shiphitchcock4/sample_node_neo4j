@@ -1,28 +1,64 @@
 # Language setting
 language: node_js
 
-# Version number
-node_js:
-  - 0.10.25
+# Version number - 0.12 
+  - 5.0
+  - 4.2.2
+  - 0.11
+  - 0.10
 
-#neo4j runs on default port 7474
 services:
- - neo4j
+  - neo4j
+  
+build:
+ pre_ci_boot:
+    image_name: drydock/u12nodpls
+    image_tag: prod
+    pull: true
+    options: '--privileged=true --net=bridge -e FOO=true -e BOO=false'
 
-# The path for Xunit to output test reports
-env:
-  - XUNIT_FILE=shippable/testresults/result.xml
+ ci:  
+    - echo "Hello, World!"
+    - env
+    - echo $PATH
+    - reports --help
+    - node --version
+    - mkdir -p shippable/testresults
+    - mkdir -p shippable/codecoverage
+    - npm install
+    - ./node_modules/.bin/istanbul cover grunt -- -u tdd
+    - ./node_modules/.bin/istanbul report cobertura --dir  shippable/codecoverage/
+    - cat shippable/codecoverage/cobertura-coverage.xml
+    - export XUNIT_FILE=shippable/testresults/result.xml
+    - grunt
+node_js:
+ - 0.12 
+  - 5.0
+  - 4.2.2
+  - 0.11
+  - 0.10
 
-# Create directories for test and coverage reports
-before_script:
-  - mkdir -p shippable/testresults
-  - mkdir -p shippable/codecoverage
+services:
+  - selenium
+  
+build:
+ pre_ci_boot:
+    image_name: drydock/u12nodall
+    image_tag: prod
+    pull: true
+    options: '--privileged=true --net=bridge -e FOO=true -e BOO=false'
 
-# Running the tests with grunt
-script:
-  - npm test
-
-# Tell istanbul to generate a coverage report
-after_script:
-  - ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha -- --ui=bdd --reporter=xunit-file
-  - ./node_modules/.bin/istanbul report cobertura --dir shippable/codecoverage/
+ ci:  
+    - echo "Hello, World!"
+    - env
+    - echo $PATH
+    - reports --help
+    - node --version
+    - mkdir -p shippable/testresults
+    - mkdir -p shippable/codecoverage
+    - npm install
+    - ./node_modules/.bin/istanbul cover grunt -- -u tdd
+    - ./node_modules/.bin/istanbul report cobertura --dir  shippable/codecoverage/
+    - cat shippable/codecoverage/cobertura-coverage.xml
+    - export XUNIT_FILE=shippable/testresults/result.xml
+    - grunt
